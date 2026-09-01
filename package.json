@@ -1,0 +1,13 @@
+{
+  "name": "@ziyuenli/pi-extensions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pi extension package from ~/pi-extensions",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
