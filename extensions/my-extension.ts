@@ -1,4 +1,7 @@
-import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import type {
+  ExtensionAPI,
+  ExtensionCommandContext,
+} from "@earendil-works/pi-coding-agent";
 
 export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx: ExtensionCommandContext) => {

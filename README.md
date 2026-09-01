@@ -35,4 +35,3 @@ pi install git:github.com/ziyuenli/pi-extensions@v0.1.0
   "packages": ["git:github.com/ziyuenli/pi-extensions@v0.1.0"]
 }
 ```
-# pi-extensions
