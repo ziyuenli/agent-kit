@@ -1,0 +1,88 @@
+{
+  "$schema": "https://raw.githubusercontent.com/gotgenes/pi-packages/main/packages/pi-permission-system/schemas/permissions.schema.json",
+  "debugLog": false,
+  "permissionReviewLog": true,
+  "yoloMode": false,
+  "doublePressToConfirm": true,
+  "permission": {
+    "*": "ask",
+    "path": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+      "~/.ssh/*": "deny",
+      "~/.aws/*": "deny",
+      "~/.config/gcloud/*": "deny",
+      "~/.kube/*": "deny",
+      "~/.netrc": "deny",
+      "~/.npmrc": "deny",
+      "~/.pypirc": "deny",
+      "~/.docker/config.json": "deny",
+      "~/.pi/agent/auth.json": "deny"
+    },
+    "read": "allow",
+    "grep": "allow",
+    "find": "allow",
+    "ls": "allow",
+    "write": "ask",
+    "edit": "ask",
+    "external_directory_read": {
+      "*": "ask"
+    },
+    "external_directory_write": {
+      "*": "deny"
+    },
+    "bash": {
+      "*": "ask",
+      "pwd": "allow",
+      "ls *": "allow",
+      "rg *": "allow",
+      "grep *": "allow",
+      "git status": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git show *": "allow",
+      "rm *": {
+        "action": "deny",
+        "reason": "Delete files manually or use a disposable worktree."
+      },
+      "sudo *": {
+        "action": "deny",
+        "reason": "Privilege elevation is prohibited."
+      },
+      "git push *": {
+        "action": "deny",
+        "reason": "Push manually after reviewing the final diff."
+      },
+      "git reset --hard *": {
+        "action": "deny",
+        "reason": "Destructive git reset is prohibited."
+      },
+      "git clean *": {
+        "action": "deny",
+        "reason": "Destructive git cleanup is prohibited."
+      },
+      "git branch -D *": {
+        "action": "deny",
+        "reason": "Force-deleting branches is prohibited."
+      }
+    },
+    "mcp": {
+      "*": "ask",
+      "mcp_status": "allow",
+      "mcp_list": "allow",
+      "mcp_search": "allow",
+      "mcp_describe": "allow"
+    },
+    "skill": {
+      "*": "ask",
+      "paper-lookup": "allow",
+      "literature-review": "allow",
+      "citation-management": "allow",
+      "research-lookup": "allow",
+      "statistical-analysis": "allow",
+      "scientific-writing": "allow"
+    }
+  }
+}

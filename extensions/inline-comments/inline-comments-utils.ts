@@ -4,7 +4,10 @@ function normalizeRenderedText(text: string): string {
 	return text.normalize().replaceAll(/\s+/g, " ").trim();
 }
 
-export function findAssistantEntryId(ctx: ExtensionContext, quote: string): string | undefined {
+export function findAssistantEntryId(
+	ctx: ExtensionContext,
+	quote: string,
+): string | undefined {
 	const normalizedQuote = normalizeRenderedText(quote);
 	let latestAssistantId: string | undefined;
 	const branch = ctx.sessionManager.getBranch();
@@ -13,7 +16,9 @@ export function findAssistantEntryId(ctx: ExtensionContext, quote: string): stri
 		if (entry.type !== "message" || entry.message.role !== "assistant") continue;
 		latestAssistantId ??= entry.id;
 		const text = entry.message.content
-			.filter((part): part is { type: "text"; text: string } => part.type === "text")
+			.filter(
+				(part): part is { type: "text"; text: string } => part.type === "text",
+			)
 			.map((part) => part.text)
 			.join("\n");
 		if (normalizeRenderedText(text).includes(normalizedQuote)) return entry.id;

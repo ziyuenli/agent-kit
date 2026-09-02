@@ -37,7 +37,10 @@ interface PendingSelectionComment {
 	selection: TranscriptSelection;
 }
 
-function packageComments(request: string, comments: readonly StagedComment[]): string {
+function packageComments(
+	request: string,
+	comments: readonly StagedComment[],
+): string {
 	const sections = comments.map(
 		(comment, index) =>
 			`Comment ${index + 1} on assistant entry ${comment.entryId}:\n` +
@@ -61,7 +64,10 @@ export default function inlineComments(pi: ExtensionAPI) {
 		if (comments.length > 0) {
 			lines.push(
 				`${comments.length} inline comment${comments.length === 1 ? "" : "s"} staged`,
-				...comments.map((comment, index) => `${index + 1}. ${comment.comment.replaceAll("\n", " ")}`),
+				...comments.map(
+					(comment, index) =>
+						`${index + 1}. ${comment.comment.replaceAll("\n", " ")}`,
+				),
 				"Submit your main prompt to send them together.",
 			);
 		}
@@ -77,7 +83,10 @@ export default function inlineComments(pi: ExtensionAPI) {
 	}
 
 	function refresh(ctx: ExtensionContext): void {
-		ctx.ui.setStatus("inline-comments", enabled ? `inline comments: ${comments.length} staged` : undefined);
+		ctx.ui.setStatus(
+			"inline-comments",
+			enabled ? `inline comments: ${comments.length} staged` : undefined,
+		);
 		const lines = getWidgetLines();
 		ctx.ui.setWidget("inline-comments", lines.length > 0 ? lines : undefined);
 	}
@@ -105,12 +114,12 @@ export default function inlineComments(pi: ExtensionAPI) {
 					overlay: true,
 					...(selection
 						? {
-							overlayOptions: {
-								row: selection.viewport.end.row + 1,
-								col: selection.viewport.start.column,
-								width: "60%",
-								maxHeight: "50%",
-							},
+								overlayOptions: {
+									row: selection.viewport.end.row + 1,
+									col: selection.viewport.start.column,
+									width: "60%",
+									maxHeight: "50%",
+								},
 							}
 						: {}),
 				},
@@ -124,7 +133,10 @@ export default function inlineComments(pi: ExtensionAPI) {
 		}
 	}
 
-	function stageSelection(selection: TranscriptSelection, ctx: ExtensionContext): void {
+	function stageSelection(
+		selection: TranscriptSelection,
+		ctx: ExtensionContext,
+	): void {
 		const quote = selection.text.trim();
 		if (!quote) {
 			pendingSelection = undefined;
@@ -145,7 +157,10 @@ export default function inlineComments(pi: ExtensionAPI) {
 		requireEnabled = true,
 	): Promise<void> {
 		if (requireEnabled && !enabled) {
-			ctx.ui.notify("Enable /inline-comments to use the shortcut key flow.", "info");
+			ctx.ui.notify(
+				"Enable /inline-comments to use the shortcut key flow.",
+				"info",
+			);
 			return;
 		}
 		if (!pendingSelection && !selectionText) {
@@ -157,19 +172,28 @@ export default function inlineComments(pi: ExtensionAPI) {
 		}
 
 		if (!ctx.isIdle()) {
-			ctx.ui.notify("Wait until the assistant is idle before opening the comment editor.", "warning");
+			ctx.ui.notify(
+				"Wait until the assistant is idle before opening the comment editor.",
+				"warning",
+			);
 			return;
 		}
 
 		if (!pendingSelection && selectionText) {
 			const quote = selectionText.trim();
 			if (!quote) {
-				ctx.ui.notify("No selected assistant text to comment. Enter text after the command.", "warning");
+				ctx.ui.notify(
+					"No selected assistant text to comment. Enter text after the command.",
+					"warning",
+				);
 				return;
 			}
 			const entryId = findAssistantEntryId(ctx, quote);
 			if (!entryId) {
-				ctx.ui.notify("Unable to attach comment to an assistant message. Try after a response appears.", "warning");
+				ctx.ui.notify(
+					"Unable to attach comment to an assistant message. Try after a response appears.",
+					"warning",
+				);
 				return;
 			}
 			await openCommentEditor(undefined, entryId, quote, ctx);
@@ -231,7 +255,10 @@ export default function inlineComments(pi: ExtensionAPI) {
 				pendingSelection = undefined;
 			}
 			refresh(ctx);
-			ctx.ui.notify(`Inline commenting ${enabled ? "enabled" : "disabled"}.`, "info");
+			ctx.ui.notify(
+				`Inline commenting ${enabled ? "enabled" : "disabled"}.`,
+				"info",
+			);
 		},
 	});
 
@@ -257,7 +284,8 @@ export default function inlineComments(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("inline-comments:open", {
-		description: "Open inline comment editor for the last selected assistant text or provided text",
+		description:
+			"Open inline comment editor for the last selected assistant text or provided text",
 		handler: async (args, ctx) => {
 			const trimmed = args.trim();
 			const selection = ctx.ui.getTranscriptSelection();

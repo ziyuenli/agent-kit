@@ -1,0 +1,12 @@
+{
+  "lastChangelogVersion": "0.84.4",
+  "theme": "light",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.3-codex-spark",
+  "defaultThinkingLevel": "high",
+  "tuiMode": "fullscreen",
+  "fullscreenCopyOnSelect": false,
+  "compaction": {
+    "enabled": true
+  }
+}
