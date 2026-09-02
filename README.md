@@ -45,7 +45,7 @@ Then run `pi` and authenticate providers again with `/login`. If you use Zotero 
 
 ## Use inline comments
 
-Start Pi, select assistant text, then press `Alt+E` (or `Alt+Shift+E`) to add an inline comment. Commands:
+On Pi versions that expose transcript selection, select assistant text and press `Alt+E` (or `Alt+Shift+E`) to add a comment. Older Pi versions remain usable through `/inline-comments:open <quoted text>`; upgrade Pi to enable selection shortcuts. Commands:
 
 ```text
 /inline-comments
