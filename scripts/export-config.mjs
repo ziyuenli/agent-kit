@@ -28,7 +28,12 @@ function exportJson(source, destination) {
   }
   try {
     const parsed = JSON.parse(readFileSync(source, "utf8"));
-    writeFileSync(destination, `${JSON.stringify(redact(parsed), null, 2)}\n`);
+    const portable = redact(parsed);
+    // profile/packages.json is authoritative: never carry machine-specific local package paths.
+    if (source.endsWith("/settings.json") && portable && typeof portable === "object") {
+      delete portable.packages;
+    }
+    writeFileSync(destination, `${JSON.stringify(portable, null, 2)}\n`);
     process.stdout.write(`Exported ${source}\n`);
   } catch (error) {
     process.stderr.write(`Skipped invalid JSON at ${source}: ${error.message}\n`);
