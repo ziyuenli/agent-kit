@@ -1,37 +1,76 @@
 # pi-extensions
 
-这是一个 Pi 扩展包示例，可直接用于在其他机器复用同一份配置。
+Portable Pi profile for **ziyuenli**: pinned public extensions, the local `inline-comments` extension, and a reviewed copy of non-secret Pi configuration.
 
-## 内容
+## What this repository syncs
 
-- `extensions/my-extension.ts`：示例扩展，提供 `/hello` 命令。
-- `package.json`：以 Pi package 形式声明了扩展入口。
+- `extensions/inline-comments/`: your custom inline-feedback extension.
+- `profile/packages.json`: exact, pinned npm sources for your extension stack.
+- `profile/config/`: exported settings, MCP, and permission-policy configuration after you review and commit it.
+- `scripts/install.mjs`: bootstraps the same Pi profile on another Mac/PC.
 
-## 本地安装测试
+`auth.json`, SSH private keys, OAuth tokens, API keys, passwords, and other fields with sensitive names are **never exported**. Sign in again with `/login` on each computer. Do not commit secrets.
+
+## First computer: export the portable configuration
 
 ```bash
 cd ~/pi-extensions
-pi -e ./extensions/my-extension.ts
+node scripts/export-config.mjs
+git diff -- profile/config
+git add profile/config
+git commit -m "chore: export portable Pi configuration"
+git push
 ```
 
-在会话中执行：
+The export reads only these Pi files when they exist:
 
-```text
-/hello
-```
+- `~/.pi/agent/settings.json`
+- `~/.pi/agent/mcp.json`
+- `~/.pi/agent/extensions/pi-permission-system/config.json`
 
-会显示提示：`Hello from ~/pi-extensions`
+Review the generated files before committing. The script removes sensitive JSON fields, but you remain responsible for confirming that no confidential endpoint, path, or personal data is included.
 
-## 发布到 GitHub 后给其他机器安装
+## New computer: install the same profile
 
 ```bash
-pi install git:github.com/ziyuenli/pi-extensions@v0.1.0
+git clone git@github.com:ziyuenli/pi-extensions.git ~/pi-extensions
+cd ~/pi-extensions
+node scripts/install.mjs
+pi list
 ```
 
-在项目 `.pi/settings.json` 或全局 `~/.pi/agent/settings.json` 中写：
+The installer merges `profile/config/` into `~/.pi/agent/`, saving a `.backup` copy before changing an existing configuration file. It installs every pinned package and this checked-out repository as a local Pi package.
 
-```json
-{
-  "packages": ["git:github.com/ziyuenli/pi-extensions@v0.1.0"]
-}
+Then run `pi` and authenticate providers again with `/login`. If you use Zotero or another local MCP service, install/start that desktop service on the new computer too.
+
+## Use inline comments
+
+Start Pi, select assistant text, then press `Alt+E` (or `Alt+Shift+E`) to add an inline comment. Commands:
+
+```text
+/inline-comments
+/inline-comments:open
+/inline-comments:send
+/inline-comments:clear
+```
+
+## Updating the profile
+
+After changing extensions or safe configuration on the source computer:
+
+```bash
+cd ~/pi-extensions
+node scripts/export-config.mjs
+git diff
+git add .
+git commit -m "chore: update Pi profile"
+git push
+```
+
+On the other computer:
+
+```bash
+cd ~/pi-extensions
+git pull
+node scripts/install.mjs
 ```

@@ -2,12 +2,13 @@
   "name": "@ziyuenli/pi-extensions",
   "version": "0.1.0",
   "private": true,
-  "description": "Pi extension package from ~/pi-extensions",
+  "description": "Portable Pi extensions and configuration profile",
   "keywords": ["pi-package"],
   "pi": {
-    "extensions": ["./extensions"]
+    "extensions": ["./extensions/inline-comments/index.ts"]
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
   }
 }
