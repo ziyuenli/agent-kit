@@ -37,6 +37,19 @@ interface PendingSelectionComment {
 	selection: TranscriptSelection;
 }
 
+/** Selection APIs were added after older Pi releases; keep manual comments working there. */
+interface TranscriptSelectionUI {
+	onTranscriptSelection?: (
+		listener: (selection: TranscriptSelection) => void,
+	) => () => void;
+	getTranscriptSelection?: () => TranscriptSelection | undefined;
+}
+
+function getSelectionUI(ctx: ExtensionContext): TranscriptSelectionUI {
+	// SAFETY: Pi's UI object is structurally compatible when these optional APIs exist.
+	return ctx.ui as unknown as TranscriptSelectionUI;
+}
+
 function packageComments(
 	request: string,
 	comments: readonly StagedComment[],
@@ -57,6 +70,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 	let comments: StagedComment[] = [];
 	let pendingSelection: PendingSelectionComment | undefined;
 	let unsubscribeSelection: (() => void) | undefined;
+	let supportsTranscriptSelection = false;
 
 	function getWidgetLines(): string[] {
 		const lines: string[] = [];
@@ -77,7 +91,9 @@ export default function inlineComments(pi: ExtensionAPI) {
 		}
 
 		lines.push(
-			`${comments.length > 0 ? " • " : ""}Select assistant text and press Alt+E (or Alt+Shift+E) to comment.`,
+			supportsTranscriptSelection
+				? `${comments.length > 0 ? " • " : ""}Select assistant text and press Alt+E (or Alt+Shift+E) to comment.`
+				: "This Pi version has no transcript-selection API. Use /inline-comments:open <quoted text>.",
 		);
 		return lines;
 	}
@@ -221,9 +237,13 @@ export default function inlineComments(pi: ExtensionAPI) {
 
 	pi.on("session_start", (_event, ctx) => {
 		unsubscribeSelection?.();
-		unsubscribeSelection = ctx.ui.onTranscriptSelection((selection) => {
-			stageSelection(selection, ctx);
-		});
+		const selectionUI = getSelectionUI(ctx);
+		supportsTranscriptSelection =
+			typeof selectionUI.getTranscriptSelection === "function";
+		unsubscribeSelection =
+			typeof selectionUI.onTranscriptSelection === "function"
+				? selectionUI.onTranscriptSelection((selection) => stageSelection(selection, ctx))
+				: undefined;
 		pendingSelection = undefined;
 		refresh(ctx);
 	});
@@ -268,8 +288,16 @@ export default function inlineComments(pi: ExtensionAPI) {
 	});
 
 	const openPendingShortcut = async (ctx: ExtensionContext) => {
-		const selection = ctx.ui.getTranscriptSelection();
-		if (selection) stageSelection(selection, ctx);
+		const selection = getSelectionUI(ctx).getTranscriptSelection?.();
+		if (selection) {
+			stageSelection(selection, ctx);
+		} else if (!supportsTranscriptSelection) {
+			ctx.ui.notify(
+				"This Pi version cannot read transcript selections. Use /inline-comments:open <quoted text>.",
+				"warning",
+			);
+			return;
+		}
 		await openPendingComment(ctx, undefined, false);
 	};
 
@@ -288,7 +316,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 			"Open inline comment editor for the last selected assistant text or provided text",
 		handler: async (args, ctx) => {
 			const trimmed = args.trim();
-			const selection = ctx.ui.getTranscriptSelection();
+			const selection = getSelectionUI(ctx).getTranscriptSelection?.();
 			if (selection) stageSelection(selection, ctx);
 			await openPendingComment(ctx, trimmed ? trimmed : undefined, false);
 		},
