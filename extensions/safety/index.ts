@@ -90,7 +90,13 @@ function hardPath(path: string): boolean {
 }
 
 function allowedPath(path: string, config: SafetyConfig): boolean {
-	return [...(config.allowedDestructivePaths ?? []), ...(config.temporaryPaths ?? DEFAULT_TEMPORARY_PATHS)].some((root) => inside(path, root));
+	return (
+		(config.allowedDestructivePaths ?? []).some((root) => inside(path, root)) ||
+		(config.temporaryPaths ?? DEFAULT_TEMPORARY_PATHS).some((root) => {
+			const rest = relative(realPath(root), realPath(path));
+			return rest !== "" && rest !== ".." && !rest.startsWith(`..${sep}`) && !isAbsolute(rest);
+		})
+	);
 }
 
 function shellWords(command: string): string[] | undefined {
@@ -359,17 +365,33 @@ function loadConfig(): RuntimeConfig {
 	return { allowedDestructivePaths: paths("allowedDestructivePaths", []), temporaryPaths: paths("temporaryPaths", DEFAULT_TEMPORARY_PATHS), backupRoot: join(agentHome, "safety-backups"), configError };
 }
 
-async function guard(decision: SafetyDecision, ctx: ExtensionContext): Promise<{ block: true; reason: string } | undefined> {
+const ALLOW_ONCE = "只允许本次调用";
+const ALLOW_SESSION = "允许本次对话中的同类命令";
+const DENY = "拒绝";
+
+export async function guard(
+	decision: SafetyDecision,
+	ctx: ExtensionContext,
+	sessionAllowed: Set<string>,
+): Promise<{ block: true; reason: string } | undefined> {
 	if (decision.action === "allow") return undefined;
 	if (decision.action === "deny") return { block: true, reason: `[pi-safety] ${decision.reason}` };
 	if (!ctx.hasUI) return { block: true, reason: `[pi-safety] ${decision.reason} 当前运行模式无法人工确认。` };
-	return (await ctx.ui.confirm("Pi safety check", `${decision.reason}\n\n只允许当前一次调用？`))
-		? undefined
-		: { block: true, reason: "[pi-safety] 用户未批准当前调用。" };
+	if (decision.kind && sessionAllowed.has(decision.kind)) return undefined;
+	const options = decision.kind ? [ALLOW_ONCE, ALLOW_SESSION, DENY] : [ALLOW_ONCE, DENY];
+	const choice = await ctx.ui.select("Pi safety check", options);
+	if (choice === ALLOW_ONCE) return undefined;
+	if (choice === ALLOW_SESSION && decision.kind) {
+		sessionAllowed.add(decision.kind);
+		return undefined;
+	}
+	return { block: true, reason: "[pi-safety] 用户未批准当前调用。" };
 }
 
 export default function piSafety(pi: ExtensionAPI): void {
 	const config = loadConfig();
+	const sessionAllowed = new Set<string>();
+	pi.on("session_start", () => sessionAllowed.clear());
 	pi.on("session_start", (_event, ctx) => {
 		if (config.configError) ctx.ui.notify(`pi-safety 配置问题：${config.configError}`, "warning");
 	});
@@ -383,7 +405,7 @@ export default function piSafety(pi: ExtensionAPI): void {
 		const command = typeof event.input.command === "string" ? event.input.command : undefined;
 		if (!command) return;
 		const decision = classifyBashCommand(command, ctx.cwd, config);
-		const blocked = await guard(decision, ctx);
+		const blocked = await guard(decision, ctx, sessionAllowed);
 		if (blocked) return blocked;
 		if (!decision.move) return;
 		try {

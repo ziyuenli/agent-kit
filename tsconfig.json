@@ -1,18 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "@earendil-works/pi-coding-agent": ["../pi/packages/coding-agent/dist/index.d.ts"],
-      "@earendil-works/pi-tui": ["../pi/packages/tui/dist/index.d.ts"]
-    }
-  },
-  "include": ["extensions/**/*.ts", "types/**/*.d.ts"]
+	"extends": "../pi/tsconfig.json",
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"strict": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"allowImportingTsExtensions": true,
+		"types": ["node"]
+	},
+	"include": ["extensions/**/*.ts", "types/**/*.d.ts"]
 }

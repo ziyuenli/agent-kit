@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync, readFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { classifyBashCommand, prepareMoveBackup } = await import(
+const { classifyBashCommand, guard, prepareMoveBackup } = await import(
   "../extensions/safety/index.ts"
 );
 
@@ -11,11 +11,29 @@ const root = mkdtempSync(join(tmpdir(), "pi-safety-test-"));
 const config = { temporaryPaths: [], allowedDestructivePaths: [] };
 
 try {
-  assert.equal(classifyBashCommand("git push origin main", root, config).action, "ask");
+  const push = classifyBashCommand("git push origin main", root, config);
+  assert.equal(push.action, "ask");
+  const sessionAllowed = new Set();
+  let prompts = 0;
+  const allowSession = await guard(push, {
+    hasUI: true,
+    ui: {
+      select: async (_title, options) => {
+        prompts++;
+        assert.deepEqual(options, ["只允许本次调用", "允许本次对话中的同类命令", "拒绝"]);
+        return "允许本次对话中的同类命令";
+      },
+    },
+  }, sessionAllowed);
+  assert.equal(allowSession, undefined);
+  assert.equal(sessionAllowed.has("git-push"), true);
+  assert.equal(await guard(push, { hasUI: true, ui: { select: async () => "拒绝" } }, sessionAllowed), undefined);
+  assert.equal(prompts, 1);
   assert.equal(classifyBashCommand("ls /System", root, config).action, "allow");
   assert.equal(classifyBashCommand("printf x > /System/example", root, config).action, "deny");
   assert.equal(classifyBashCommand("rm -rf /System/Library/example", root, config).action, "deny");
   assert.equal(classifyBashCommand("rm -rf /tmp/pi-safety-test", root, { temporaryPaths: ["/tmp"] }).action, "allow");
+  assert.equal(classifyBashCommand("rm -rf /tmp", root, { temporaryPaths: ["/tmp"] }).action, "ask");
 
   const source = join(root, "source.txt");
   const destination = join(root, "destination.txt");

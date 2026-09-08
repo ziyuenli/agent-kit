@@ -22,13 +22,27 @@ import {
 	ExtensionEditorComponent,
 	type TranscriptSelection,
 } from "@earendil-works/pi-coding-agent";
-import { Key } from "@earendil-works/pi-tui";
-import { findAssistantEntryId } from "./inline-comments-utils.ts";
+import {
+	HStack,
+	Key,
+	MouseRegion,
+	Text,
+	type TuiMouseEvent,
+	visibleWidth,
+} from "@earendil-works/pi-tui";
+import {
+	createTranscriptAnnotations,
+	findAssistantEntryId,
+	INLINE_COMMENT_STATE_TYPE,
+	type InlineCommentTranscriptAnnotation,
+	restoreInlineCommentState,
+} from "./inline-comments-utils.ts";
 
 interface StagedComment {
 	entryId: string;
 	quote: string;
 	comment: string;
+	selection?: TranscriptSelection;
 }
 
 interface PendingSelectionComment {
@@ -37,12 +51,21 @@ interface PendingSelectionComment {
 	selection: TranscriptSelection;
 }
 
+interface PersistedInlineCommentState {
+	version: 1;
+	comments: readonly StagedComment[];
+}
+
 /** Selection APIs were added after older Pi releases; keep manual comments working there. */
 interface TranscriptSelectionUI {
 	onTranscriptSelection?: (
 		listener: (selection: TranscriptSelection) => void,
 	) => () => void;
 	getTranscriptSelection?: () => TranscriptSelection | undefined;
+	setTranscriptAnnotations?: (
+		key: string,
+		annotations: readonly InlineCommentTranscriptAnnotation[] | undefined,
+	) => void;
 }
 
 function getSelectionUI(ctx: ExtensionContext): TranscriptSelectionUI {
@@ -71,31 +94,67 @@ export default function inlineComments(pi: ExtensionAPI) {
 	let pendingSelection: PendingSelectionComment | undefined;
 	let unsubscribeSelection: (() => void) | undefined;
 	let supportsTranscriptSelection = false;
+	let openCommentIndex: number | undefined;
 
-	function getWidgetLines(): string[] {
-		const lines: string[] = [];
+	function persistComments(): void {
+		pi.appendEntry<PersistedInlineCommentState>(INLINE_COMMENT_STATE_TYPE, {
+			version: 1,
+			comments,
+		});
+	}
 
-		if (comments.length > 0) {
-			lines.push(
-				`${comments.length} inline comment${comments.length === 1 ? "" : "s"} staged`,
-				...comments.map(
-					(comment, index) =>
-						`${index + 1}. ${comment.comment.replaceAll("\n", " ")}`,
-				),
-				"Submit your main prompt to send them together.",
+	async function editComment(
+		index: number,
+		ctx: ExtensionContext,
+		selectionOverride?: TranscriptSelection,
+	): Promise<void> {
+		const existing = comments[index];
+		if (!existing || dialogOpen || !ctx.isIdle()) return;
+		openCommentIndex = index;
+		refresh(ctx);
+		dialogOpen = true;
+		const selectionForOverlay = selectionOverride ?? existing.selection;
+		try {
+			const result = await ctx.ui.custom<string | undefined>(
+				(tui, _theme, keybindings, done) =>
+					new ExtensionEditorComponent(
+						tui,
+						keybindings,
+						`Selected text:\n${existing.quote}\n\nEdit comment ${index + 1}:`,
+						existing.comment,
+						(value) => done(value),
+						() => done(undefined),
+					),
+				{
+					overlay: true,
+					...(selectionForOverlay
+						? {
+								overlayOptions: {
+									row: selectionForOverlay.viewport.end.row + 1,
+									col: selectionForOverlay.viewport.start.column,
+									width: "60%",
+									maxHeight: "50%",
+								},
+							}
+						: {
+								overlayOptions: {
+									width: "70%",
+									maxHeight: "70%",
+									anchor: "center",
+								},
+							}),
+				},
 			);
+			const updated = result?.trim();
+			if (updated && comments[index]) {
+				comments[index] = { ...existing, comment: updated };
+				persistComments();
+			}
+		} finally {
+			dialogOpen = false;
+			openCommentIndex = undefined;
+			refresh(ctx);
 		}
-
-		if (!enabled) {
-			return lines;
-		}
-
-		lines.push(
-			supportsTranscriptSelection
-				? `${comments.length > 0 ? " • " : ""}Select assistant text and press Alt+E (or Alt+Shift+E) to comment.`
-				: "This Pi version has no transcript-selection API. Use /inline-comments:open <quoted text>.",
-		);
-		return lines;
 	}
 
 	function refresh(ctx: ExtensionContext): void {
@@ -103,8 +162,44 @@ export default function inlineComments(pi: ExtensionAPI) {
 			"inline-comments",
 			enabled ? `inline comments: ${comments.length} staged` : undefined,
 		);
-		const lines = getWidgetLines();
-		ctx.ui.setWidget("inline-comments", lines.length > 0 ? lines : undefined);
+		getSelectionUI(ctx).setTranscriptAnnotations?.(
+			"inline-comments",
+			createTranscriptAnnotations(
+				comments,
+				(index, selection) => void editComment(index, ctx, selection),
+				openCommentIndex,
+			),
+		);
+		ctx.ui.setWidget(
+			"inline-comments",
+			comments.length === 0
+				? undefined
+				: (_tui, theme) =>
+						new HStack(
+							comments.map((_comment, index) => {
+								const label = `🫧${index + 1}`;
+								const width = visibleWidth(label);
+								return {
+									component: new MouseRegion(
+										new Text(theme.fg("accent", label), 0, 0),
+										(event: TuiMouseEvent) => {
+											if (event.button !== "left") return undefined;
+											if (event.type === "press") return { handled: true, render: false };
+											if (event.type !== "click") return undefined;
+											void editComment(index, ctx);
+											return { handled: true };
+										},
+									),
+									basis: width,
+									minSize: width,
+									maxSize: width,
+									grow: 0,
+									shrink: 0,
+								};
+							}),
+							{ gap: 1, align: "start" },
+						),
+		);
 	}
 
 	async function openCommentEditor(
@@ -142,7 +237,8 @@ export default function inlineComments(pi: ExtensionAPI) {
 			);
 			const comment = result?.trim();
 			if (!comment) return;
-			comments.push({ entryId, quote, comment });
+			comments.push({ entryId, quote, comment, selection });
+			persistComments();
 			refresh(ctx);
 		} finally {
 			dialogOpen = false;
@@ -152,19 +248,23 @@ export default function inlineComments(pi: ExtensionAPI) {
 	function stageSelection(
 		selection: TranscriptSelection,
 		ctx: ExtensionContext,
-	): void {
+		notifyOnFailure = false,
+	): boolean {
 		const quote = selection.text.trim();
 		if (!quote) {
 			pendingSelection = undefined;
-			return;
+			return false;
 		}
 		const entryId = findAssistantEntryId(ctx, quote);
 		if (!entryId) {
 			pendingSelection = undefined;
-			ctx.ui.notify("Selection is not within any assistant message.", "warning");
-			return;
+			if (notifyOnFailure) {
+				ctx.ui.notify("Selection is not within any assistant message.", "warning");
+			}
+			return false;
 		}
 		pendingSelection = { selection, entryId, quote };
+		return true;
 	}
 
 	async function openPendingComment(
@@ -217,7 +317,8 @@ export default function inlineComments(pi: ExtensionAPI) {
 			return;
 		}
 
-		const { selection, entryId, quote } = pendingSelection!;
+		if (!pendingSelection) return;
+		const { selection, entryId, quote } = pendingSelection;
 		await openCommentEditor(selection, entryId, quote, ctx);
 		pendingSelection = undefined;
 		refresh(ctx);
@@ -230,6 +331,8 @@ export default function inlineComments(pi: ExtensionAPI) {
 		}
 		const message = packageComments("", comments);
 		comments = [];
+		openCommentIndex = undefined;
+		persistComments();
 		refresh(ctx);
 		if (ctx.isIdle()) pi.sendUserMessage(message);
 		else pi.sendUserMessage(message, { deliverAs: "followUp" });
@@ -240,13 +343,15 @@ export default function inlineComments(pi: ExtensionAPI) {
 		const selectionUI = getSelectionUI(ctx);
 		supportsTranscriptSelection =
 			typeof selectionUI.getTranscriptSelection === "function";
+		comments = restoreInlineCommentState(ctx);
 		unsubscribeSelection =
 			typeof selectionUI.onTranscriptSelection === "function"
-				? selectionUI.onTranscriptSelection((selection) =>
-						stageSelection(selection, ctx),
-					)
+				? selectionUI.onTranscriptSelection((selection) => {
+						if (enabled) stageSelection(selection, ctx);
+					})
 				: undefined;
 		pendingSelection = undefined;
+		openCommentIndex = undefined;
 		refresh(ctx);
 	});
 
@@ -254,13 +359,16 @@ export default function inlineComments(pi: ExtensionAPI) {
 		unsubscribeSelection?.();
 		unsubscribeSelection = undefined;
 		pendingSelection = undefined;
+		openCommentIndex = undefined;
 		dialogOpen = false;
 	});
 
 	pi.on("input", (event, ctx) => {
-		if (comments.length === 0) return;
+		if (event.source === "extension" || comments.length === 0) return;
 		const pending = comments;
 		comments = [];
+		openCommentIndex = undefined;
+		persistComments();
 		refresh(ctx);
 		return {
 			action: "transform",
@@ -275,6 +383,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 			enabled = !enabled;
 			if (!enabled) {
 				pendingSelection = undefined;
+				openCommentIndex = undefined;
 			}
 			refresh(ctx);
 			ctx.ui.notify(
@@ -291,7 +400,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 
 	const openPendingShortcut = async (ctx: ExtensionContext) => {
 		const selection = getSelectionUI(ctx).getTranscriptSelection?.();
-		if (selection) {
+		if (selection && enabled) {
 			stageSelection(selection, ctx);
 		} else if (!supportsTranscriptSelection) {
 			ctx.ui.notify(
@@ -300,7 +409,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 			);
 			return;
 		}
-		await openPendingComment(ctx, undefined, false);
+		await openPendingComment(ctx, undefined, true);
 	};
 
 	pi.registerShortcut(Key.alt("e"), {
@@ -319,8 +428,23 @@ export default function inlineComments(pi: ExtensionAPI) {
 		handler: async (args, ctx) => {
 			const trimmed = args.trim();
 			const selection = getSelectionUI(ctx).getTranscriptSelection?.();
-			if (selection) stageSelection(selection, ctx);
+			if (selection && enabled) stageSelection(selection, ctx);
 			await openPendingComment(ctx, trimmed ? trimmed : undefined, false);
+		},
+	});
+
+	pi.registerCommand("inline-comments:edit", {
+		description: "Review or edit a staged inline comment by number",
+		handler: async (args, ctx) => {
+			const number = Number.parseInt(args.trim(), 10);
+			if (!Number.isInteger(number) || number < 1 || number > comments.length) {
+				ctx.ui.notify(
+					`Enter a comment number from 1 to ${comments.length || 0}.`,
+					"warning",
+				);
+				return;
+			}
+			await editComment(number - 1, ctx);
 		},
 	});
 
@@ -328,6 +452,8 @@ export default function inlineComments(pi: ExtensionAPI) {
 		description: "Discard staged inline comments",
 		handler: async (_args, ctx) => {
 			comments = [];
+			openCommentIndex = undefined;
+			persistComments();
 			refresh(ctx);
 			ctx.ui.notify("Staged inline comments discarded.", "info");
 		},

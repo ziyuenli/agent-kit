@@ -45,7 +45,7 @@ The installer merges `profile/config/` into `~/.pi/agent/`, saving a `.backup` c
 
 Then run `pi` and authenticate providers again with `/login`. If you use Zotero or another local MCP service, install/start that desktop service on the new computer too.
 
-`pi-safety` asks before destructive Git operations and non-temporary deletion, blocks system-impacting commands, and automatically backs up an existing `mv` destination under `~/.pi/agent/safety-backups/` after checking space on the backup filesystem.
+`pi-safety` asks before destructive Git operations and non-temporary deletion, with choices for the current call, the same rule kind for the current conversation, or rejection. Temporary-path children are allowed, but the configured temporary root itself still requires confirmation. It blocks system-impacting commands and automatically backs up an existing `mv` destination under `~/.pi/agent/safety-backups/` after checking space on the backup filesystem. Session approvals are held in memory only.
 
 ## Use inline comments
 
