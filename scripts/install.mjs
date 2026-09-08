@@ -1,17 +1,75 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from "node:fs";
+import {
+  appendFileSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const manifest = join(root, "profile", "packages.json");
+const piHome =
+  process.env.PI_AGENT_HOME ?? join(process.env.HOME, ".pi", "agent");
+
+// Cold load: these packages get INSTALLED (so capability-loader can switch them on
+// without network) but are NOT put into settings.packages at startup. They are added
+// on demand by the capability-loader extension via /capability-enable <name>.
+const LAZY_SOURCES = [
+  "npm:pi-web-access@0.27.0",
+  "npm:pi-lens@4.1.3",
+  "npm:@plannotator/pi-extension@0.27.9",
+  "npm:pi-mcp-adapter@2.31.0",
+];
+
+const ZSH_ALIASES = `\n# pi cold-load aliases (pi-extensions)\npiweb() { pi -e npm:pi-web-access@0.27.0 "$@" }\npilens() { pi -e npm:pi-lens@4.1.3 "$@" }\npimcp() { pi -e npm:pi-mcp-adapter@2.31.0 "$@" }\n`;
 
 function run(command, args) {
   const result = spawnSync(command, args, { stdio: "inherit" });
   if (result.error) throw result.error;
   if (result.status !== 0)
     throw new Error(`${command} ${args.join(" ")} failed`);
+}
+
+// After `pi install` adds every pinned package to settings.packages, drop the cold-load
+// set so the next cold start stays fast. They remain installed for on-demand loading.
+function stripLazyFromSettings() {
+  const settingsPath = join(piHome, "settings.json");
+  if (!existsSync(settingsPath)) return;
+  try {
+    const s = JSON.parse(readFileSync(settingsPath, "utf8"));
+    if (Array.isArray(s.packages)) {
+      const before = s.packages.length;
+      s.packages = s.packages.filter((p) => !LAZY_SOURCES.includes(p));
+      if (s.packages.length !== before) {
+        writeFileSync(settingsPath, `${JSON.stringify(s, null, 2)}\n`);
+        process.stdout.write(
+          "Trimmed settings.packages: heavy packages kept installed but not autoloaded (cold load).\n",
+        );
+      }
+    }
+  } catch (error) {
+    process.stderr.write(
+      `Could not trim settings.packages: ${error.message}\n`,
+    );
+  }
+}
+
+function appendZshAliases() {
+  const zshrc = join(process.env.HOME, ".zshrc");
+  if (!existsSync(zshrc)) {
+    writeFileSync(zshrc, ZSH_ALIASES);
+    process.stdout.write("Wrote pi aliases to ~/.zshrc\n");
+    return;
+  }
+  if (readFileSync(zshrc, "utf8").includes("pi cold-load aliases")) {
+    process.stdout.write("~/.zshrc already has the pi aliases\n");
+    return;
+  }
+  appendFileSync(zshrc, ZSH_ALIASES);
+  process.stdout.write("Appended pi aliases to ~/.zshrc\n");
 }
 
 try {
@@ -24,8 +82,10 @@ try {
   run(process.execPath, [join(root, "scripts", "apply-config.mjs")]);
   for (const source of packages) run("pi", ["install", source]);
   run("pi", ["install", root]);
+  stripLazyFromSettings();
+  appendZshAliases();
   process.stdout.write(
-    "\nPi profile installed. Run `pi list` to verify, then sign in again with `/login` as needed.\n",
+    "\nPi profile installed. Run `pi`, then sign in again with `/login` as needed.\n",
   );
 } catch (error) {
   process.stderr.write(`Install failed: ${error.message}\n`);

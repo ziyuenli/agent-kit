@@ -242,7 +242,9 @@ export default function inlineComments(pi: ExtensionAPI) {
 			typeof selectionUI.getTranscriptSelection === "function";
 		unsubscribeSelection =
 			typeof selectionUI.onTranscriptSelection === "function"
-				? selectionUI.onTranscriptSelection((selection) => stageSelection(selection, ctx))
+				? selectionUI.onTranscriptSelection((selection) =>
+						stageSelection(selection, ctx),
+					)
 				: undefined;
 		pendingSelection = undefined;
 		refresh(ctx);

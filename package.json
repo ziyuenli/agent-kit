@@ -2,10 +2,20 @@
   "name": "@ziyuenli/pi-extensions",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Portable Pi extensions and configuration profile",
-  "keywords": ["pi-package"],
+  "keywords": [
+    "pi-package"
+  ],
   "pi": {
-    "extensions": ["./extensions/inline-comments/index.ts"]
+    "extensions": [
+      "./extensions/inline-comments/index.ts",
+      "./extensions/safety/index.ts",
+      "./extensions/capability-loader.ts"
+    ]
+  },
+  "scripts": {
+    "test:safety": "node --experimental-strip-types scripts/test-safety.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

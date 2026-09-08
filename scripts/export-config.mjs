@@ -58,8 +58,8 @@ mkdirSync(outputDir, { recursive: true });
 exportJson(join(piHome, "settings.json"), join(outputDir, "settings.json"));
 exportJson(join(piHome, "mcp.json"), join(outputDir, "mcp.json"));
 exportJson(
-  join(piHome, "extensions", "pi-permission-system", "config.json"),
-  join(outputDir, "permission-system.json"),
+  join(piHome, "extensions", "pi-safety", "config.json"),
+  join(outputDir, "safety.json"),
 );
 
 console.log(

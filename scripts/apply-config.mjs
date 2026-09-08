@@ -52,6 +52,6 @@ function applyJson(sourceName, destination) {
 applyJson("settings.json", join(piHome, "settings.json"));
 applyJson("mcp.json", join(piHome, "mcp.json"));
 applyJson(
-  "permission-system.json",
-  join(piHome, "extensions", "pi-permission-system", "config.json"),
+  "safety.json",
+  join(piHome, "extensions", "pi-safety", "config.json"),
 );
