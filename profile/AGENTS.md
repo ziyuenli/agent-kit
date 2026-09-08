@@ -23,3 +23,9 @@
 ## Task-Specific Guidance
 
 - When editing or reconciling personal rules, read `~/.pi/agent/skills/personal-rules-maintenance/SKILL.md`. Maintain the repository source and run its synchronization script; do not independently edit the deployed global copy.
+
+## Optional Local Memory
+
+- If `~/.codex/memories/memory_summary.md` exists, read it before non-trivial work.
+- For targeted history, search `~/.codex/memories/MEMORY.md` with `rg`.
+- Treat memory as potentially stale; verify workspace facts before editing.
