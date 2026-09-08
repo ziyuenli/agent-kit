@@ -11,6 +11,8 @@
  *   /inline-comments:send    Send staged inline comments without another request
  *   /inline-comments:clear   Discard staged comments
  *
+ * After staging a comment, press Enter with an empty input to send the staged feedback.
+ *
  * Shortcut:
  *   Alt+E (preferred) / Alt+Shift+E (fallback)
  *   Add a comment to the last selected assistant text
@@ -92,6 +94,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 	let dialogOpen = false;
 	let comments: StagedComment[] = [];
 	let pendingSelection: PendingSelectionComment | undefined;
+	let lastSelection: TranscriptSelection | undefined;
 	let unsubscribeSelection: (() => void) | undefined;
 	let supportsTranscriptSelection = false;
 	let openCommentIndex: number | undefined;
@@ -340,6 +343,9 @@ export default function inlineComments(pi: ExtensionAPI) {
 
 	pi.on("session_start", (_event, ctx) => {
 		unsubscribeSelection?.();
+		pendingSelection = undefined;
+		lastSelection = undefined;
+		openCommentIndex = undefined;
 		const selectionUI = getSelectionUI(ctx);
 		supportsTranscriptSelection =
 			typeof selectionUI.getTranscriptSelection === "function";
@@ -347,11 +353,10 @@ export default function inlineComments(pi: ExtensionAPI) {
 		unsubscribeSelection =
 			typeof selectionUI.onTranscriptSelection === "function"
 				? selectionUI.onTranscriptSelection((selection) => {
+						lastSelection = selection;
 						if (enabled) stageSelection(selection, ctx);
 					})
 				: undefined;
-		pendingSelection = undefined;
-		openCommentIndex = undefined;
 		refresh(ctx);
 	});
 
@@ -359,11 +364,13 @@ export default function inlineComments(pi: ExtensionAPI) {
 		unsubscribeSelection?.();
 		unsubscribeSelection = undefined;
 		pendingSelection = undefined;
+		lastSelection = undefined;
 		openCommentIndex = undefined;
 		dialogOpen = false;
 	});
 
 	pi.on("input", (event, ctx) => {
+		if (event.source !== "extension") lastSelection = undefined;
 		if (event.source === "extension" || comments.length === 0) return;
 		const pending = comments;
 		comments = [];
@@ -381,7 +388,11 @@ export default function inlineComments(pi: ExtensionAPI) {
 		description: "Toggle inline commenting for fullscreen transcript selections",
 		handler: async (_args, ctx) => {
 			enabled = !enabled;
-			if (!enabled) {
+			if (enabled) {
+				const selection =
+					getSelectionUI(ctx).getTranscriptSelection?.() ?? lastSelection;
+				if (selection) stageSelection(selection, ctx);
+			} else {
 				pendingSelection = undefined;
 				openCommentIndex = undefined;
 			}
