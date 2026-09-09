@@ -54,6 +54,8 @@ function isPoint(value: unknown): value is { row: number; column: number } {
 
 function isTranscriptSelection(value: unknown): value is TranscriptSelection {
 	if (!isRecord(value) || typeof value.text !== "string") return false;
+	if (value.sourceId !== undefined && typeof value.sourceId !== "string")
+		return false;
 	if (!isRecord(value.document) || !isRecord(value.viewport)) return false;
 	return (
 		isPoint(value.document.start) &&
@@ -121,7 +123,20 @@ function normalizeMarkdownText(text: string): string {
 export function findAssistantEntryId(
 	ctx: ExtensionContext,
 	quote: string,
+	sourceId?: string,
 ): string | undefined {
+	if (sourceId !== undefined) {
+		return ctx.sessionManager
+			.getBranch()
+			.some(
+				(entry) =>
+					entry.type === "message" &&
+					entry.id === sourceId &&
+					entry.message.role === "assistant",
+			)
+			? sourceId
+			: undefined;
+	}
 	const normalizedQuote = normalizeRenderedText(quote);
 	if (!normalizedQuote) return undefined;
 	const branch = ctx.sessionManager.getBranch();
