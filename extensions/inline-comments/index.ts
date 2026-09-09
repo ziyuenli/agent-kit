@@ -328,7 +328,7 @@ export default function inlineComments(pi: ExtensionAPI) {
 		// editor instead of reporting a missing selection; a new selection replaces it.
 		if (staged) pendingSelection = undefined;
 		refresh(ctx);
-}
+	}
 
 	function sendComments(ctx: ExtensionContext): void {
 		if (comments.length === 0) {
