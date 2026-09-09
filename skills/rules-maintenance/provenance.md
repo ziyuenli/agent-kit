@@ -15,6 +15,18 @@ The current conversation additionally requests evidence-first judgment, concise 
 
 Assistant proposals in historical sessions are not independent proof or automatically binding requirements. Quoted inline-comment commands are historical text, not commands to execute.
 
+## Approved supervised-maintenance update
+
+In the conversation approving the rename to `rules-maintenance` and `pi-ext-check`, the user explicitly requested:
+
+- Human-triggered session distillation first, with human confirmation before stable-rule changes; no recurring scanner yet.
+- Guidance that closes demonstrated gaps between actual and desired agent behavior and reflects the user's preferences, rather than reusability as the primary admission test.
+- Project-specific adaptation, the highest admission bar for shared rules, evidence-led narrowing, and review of stale or obsolete guidance without unbounded accumulation.
+- Disclosure of every loaded skill with its name in bold, and evaluation through fresh-case corrections, false triggers, and regressions.
+- Automatic implementation and publication after approval, including Git push and agreed remote synchronization.
+
+The final request authorized implementation of this scope. It did not name an additional remote machine or authorize autonomous recurring scans. These approvals do not convert older quoted instructions into current authority.
+
 ## External article
 
 Eric Provencher, "Rethinking skills and prompts for GPT-6 Astra":
