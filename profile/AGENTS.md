@@ -22,6 +22,7 @@
 
 ## Task-Specific Guidance
 
+- When delegating to local or SSH CLIs or processing their returns, read `~/.pi/agent/skills/delegated-execution/SKILL.md` and apply its role, model, evidence, and handoff rules.
 - When editing or reconciling personal rules, read `~/.pi/agent/skills/personal-rules-maintenance/SKILL.md`. Maintain the repository source and run its synchronization script; do not independently edit the deployed global copy.
 
 ## Optional Local Memory

@@ -49,11 +49,11 @@ Then run `pi` and authenticate providers again with `/login`. If you use Zotero 
 
 ## Use inline comments
 
-On Pi versions that expose transcript selection, select assistant text and press `Alt+E` (or `Alt+Shift+E`) to add a comment. Older Pi versions remain usable through `/inline-comments:open <quoted text>`; upgrade Pi to enable selection shortcuts. Commands:
+On Pi versions that expose transcript selection, run `/inline-comments` to enable capture, then select assistant text and press `Alt+E` (or `Alt+Shift+E`) to add a comment. A selection made before enabling is retained and becomes available when the feature is enabled. `/inline-comments:open <quoted text>` is the text-based fallback and also works without selection support. After one or more comments are staged, press Enter with an empty chat input to send them; `/inline-comments:send` remains the explicit alternative. Commands:
 
 ```text
 /inline-comments
-/inline-comments:open
+/inline-comments:open <quoted text>
 /inline-comments:send
 /inline-comments:clear
 ```
