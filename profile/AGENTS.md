@@ -3,7 +3,7 @@
 - Prefer rendering mathematical expressions in Markdown math notation:
   - Use inline equations with `$...$`.
   - Use display equations with `$$...$$`.
-- For Pi extension implementation, fixes, integration, or validation, read `~/.agents/skills/pi-extension-validation/SKILL.md` and apply its scoped checks and acceptance/stop contract. For explanation-only or documentation-only tasks concerning Pi extensions, apply only relevant guidance; runtime validation is not required.
+- For Pi extension implementation, fixes, integration, or validation, read `~/.pi/agent/skills/pi-extension-validation/SKILL.md` and apply its scoped checks and acceptance/stop contract. For explanation-only or documentation-only tasks concerning Pi extensions, apply only relevant guidance; runtime validation is not required.
 
 ## Communication and Judgment
 
