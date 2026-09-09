@@ -20,6 +20,20 @@ Classify the failure before proposing a fix:
 - **Guidance:** the agent followed the instructions but the result still missed the intended behavior. Revise the method or completion criteria.
 - **Execution conditions:** tools, access, context, or other capabilities were insufficient. Address or report that condition rather than pretending a rule fixes it.
 
+### When human guidance makes the task succeed
+
+Compare the initial attempt, the human intervention, and the successful result. Identify what the intervention supplied: a clearer objective or acceptance criterion; a missing constraint or scope boundary; facts or documentation; tools or access; a reminder to use existing information; or a reasoning or execution method. More than one cause may contribute. Do not infer inadequate agent capability or a poorly written prompt from the initial failure alone.
+
+Determine where the missing information could have come from at the time:
+
+- **User-only information:** an unstated intention, preference, or constraint unavailable in the authorized context. The agent cannot read the user's mind. Assess whether a material ambiguity was recognizable and warranted a focused question; do not expect it to guess the answer or ask about every imaginable constraint.
+- **Available or discoverable information:** information already in the instructions or reasonably obtainable from authorized files, docs, tools, or observations. Check whether the agent should have retrieved or applied it; do not blame prompt omissions for missed inspection or non-adherence.
+- **Unavailable execution support:** necessary documentation, access, or tooling that the agent could not obtain within its authority. Separate this from a reasoning or method gap when sufficient inputs and tools were available.
+
+Keep one-off clarifications in the task or project record. When recurring missing inputs justify a reusable intervention, prefer a narrowly triggered input check or clarification step rather than a generic demand for more detailed prompts. Promote a stable behavior rule only under the placement and approval criteria below.
+
+Success after coaching establishes success under the added conditions, not independent capability or transfer. In a fresh related case, test whether the agent identifies the missing information and appropriately retrieves it or asks for it without repeating the same coaching. Preserve necessary user input as a legitimate dependency, not an automation failure.
+
 Use actual read/tool records when available. Record the skill path and revision or content hash when needed to distinguish versions. A disclosure is not proof of reading or adherence; absence of a log is not proof of non-use. Mark unavailable evidence as unknown rather than reconstructing fictional execution history.
 
 Completion: state the supported cause, remaining uncertainty, and smallest justified intervention. No new rule is a valid outcome.
