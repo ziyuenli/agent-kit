@@ -60,7 +60,7 @@ If reusable evidence satisfies the stop contract, cite it instead of launching a
 
 The canary complements local tests; it does not replace them. A non-TTY subprocess may verify loading or non-interactive behavior, but cannot establish TUI interaction correctness. If the required terminal or host capability is unavailable, report that portion as blocked rather than substituting weaker evidence.
 
-**Live-pane trace.** For real-pane interaction evidence an isolated canary cannot produce (for example transcript selection), read `~/.agents/skills/pane-trace/SKILL.md` for the protocol, diagnosis branching, and permission fallback; when user authorization is unavailable, report that portion as blocked rather than substituting weaker evidence.
+For runtime identity evidence, temporary tracing, and permission fallbacks, read [references/runtime.md](references/runtime.md).
 
 Completion criterion: fresh-process or eligible reused evidence confirms the intended extension loaded and the relevant runtime action succeeded. Record warnings and errors with their relevance; mark an inapplicable canary skipped, and missing required runtime evidence blocked.
 
