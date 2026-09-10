@@ -1,11 +1,11 @@
 ---
 name: pi-ext-check
-description: Validate Pi extensions with targeted regression tests, repository checks, conditional isolated-runtime canaries, and bounded fix–retest loops. Use when implementing, fixing, integrating, or validating Pi extensions, including their TUI hooks and extension packages. Explanation-only and documentation-only tasks use relevant guidance without runtime validation.
+description: Validate Pi extensions with targeted regression tests, repository checks, conditional isolated-runtime canaries, and bounded fix–retest loops. Use for Pi extensions maintained by the user, or when the user explicitly asks to integrate, diagnose, or validate a third-party Pi extension. Do not use for explanation-only, comparison, or general evaluation of third-party extensions.
 ---
 
 # Pi Extension Checks
 
-Use this as a tight validation loop for Pi extensions, not plugins for other products. Explanation-only and documentation-only tasks require only relevant content checks. Pure helper changes without loading, TUI, session, or environment dependencies need targeted local checks, not a runtime canary.
+Use this as a tight validation loop for Pi extensions maintained by the user, or for a third-party Pi extension the user explicitly asks to integrate, diagnose, or validate. Do not load it for explanation-only, comparison, or general evaluation of third-party extensions. Documentation-only changes to an in-scope extension require only relevant content checks. Pure helper changes without loading, TUI, session, or environment dependencies need targeted local checks, not a runtime canary.
 
 ## Stop contract (apply before testing)
 

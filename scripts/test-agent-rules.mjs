@@ -10,6 +10,12 @@ import {
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { syncRules } from "./sync-agent-rules.mjs";
+import {
+  createRuleBackup,
+  pruneRuleBackups,
+  setRuleBackupPinned,
+  verifyRuleBackup,
+} from "./manage-rule-backups.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "pi-rules-test-"));
 let count = 0;
@@ -63,6 +69,48 @@ try {
   );
   mkdirSync(join(first.agentDir, "rules-sync/lock"));
   assert.throws(() => syncRules(first), /EEXIST/);
+
+  const managed = join(root, "managed");
+  const target = join(root, "shared.md");
+  const records = [];
+  for (let day = 0; day < 7; day++) {
+    writeFileSync(target, `version ${day}\n`);
+    const now = new Date(Date.UTC(2026, 0, day + 1));
+    const backup = createRuleBackup({
+      target,
+      reason: "test-change",
+      root: managed,
+      now,
+    });
+    verifyRuleBackup({ recordPath: backup.recordPath, now });
+    records.push(backup);
+  }
+  setRuleBackupPinned({ recordPath: records[0].recordPath });
+  const reused = createRuleBackup({
+    target,
+    reason: "same-content",
+    root: managed,
+    now: new Date(Date.UTC(2026, 0, 8)),
+  });
+  assert.equal(reused.reused, true);
+  assert.equal(reused.recordPath, records[6].recordPath);
+
+  writeFileSync(target, "prepared only\n");
+  const prepared = createRuleBackup({
+    target,
+    reason: "unverified",
+    root: managed,
+    now: new Date(Date.UTC(2026, 0, 9)),
+  });
+  const pruneAt = new Date(Date.UTC(2026, 2, 1));
+  let pruned = pruneRuleBackups({ root: managed, now: pruneAt });
+  assert.deepEqual(pruned.candidates, [records[1].backupPath]);
+  assert.equal(existsSync(records[1].backupPath), true);
+  pruned = pruneRuleBackups({ root: managed, now: pruneAt, apply: true });
+  assert.deepEqual(pruned.deleted, [records[1].backupPath]);
+  assert.equal(existsSync(records[1].backupPath), false);
+  assert.equal(existsSync(records[0].backupPath), true);
+  assert.equal(existsSync(prepared.backupPath), true);
   process.stdout.write("Rules synchronization checks passed\n");
 } finally {
   rmSync(root, { recursive: true, force: true });

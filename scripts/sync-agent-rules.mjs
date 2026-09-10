@@ -13,6 +13,11 @@ import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
+import {
+  createRuleBackup,
+  pruneRuleBackups,
+  verifyRuleBackup,
+} from "./manage-rule-backups.mjs";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const hash = (value) =>
@@ -87,11 +92,14 @@ export function syncRules({
     if (s !== d) {
       if (d !== null) {
         const backups = join(stateDir, "backups");
-        mkdirSync(backups, { recursive: true, mode: 0o700 });
-        result.backup = join(backups, `${Date.now()}-${randomUUID()}.md`);
-        writeFileSync(result.backup, d, { mode: 0o600, flag: "wx" });
-        if (read(result.backup) !== d)
-          throw new Error("Backup verification failed");
+        const backup = createRuleBackup({
+          target: destination,
+          reason: "pi-entry-sync",
+          root: backups,
+        });
+        result.backup = backup.backupPath;
+        result.backupRecord = backup.recordPath;
+        result.backupReused = backup.reused;
       }
       if (d !== read(destination))
         throw new Error("Destination changed after backup");
@@ -100,6 +108,13 @@ export function syncRules({
     }
     if (read(destination) !== s)
       throw new Error("Deployment verification failed");
+    if (result.backupRecord) {
+      verifyRuleBackup({ recordPath: result.backupRecord });
+      result.prunedBackups = pruneRuleBackups({
+        root: join(stateDir, "backups"),
+        apply: true,
+      }).deleted;
+    }
     atomic(snapshot, s);
     atomic(
       join(stateDir, "state.json"),

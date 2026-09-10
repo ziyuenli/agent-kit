@@ -15,11 +15,11 @@ Compare the canonical source (S), global destination (D), and last successfully 
 For an authorized deployment, the script must:
 
 1. Serialize synchronization and recheck that reviewed inputs have not changed before writing. Stop on concurrent edits.
-2. Back up the existing destination with a unique name and restrictive permissions. If backup fails, stop.
+2. Back up the existing destination with `scripts/manage-rule-backups.mjs`. Its metadata records the target, reason, timestamps, pre-change hash, verification state, and pin state. If backup fails, stop.
 3. Write through a temporary file in the destination directory and replace atomically. Preserve appropriate access permissions; never truncate the live file in place.
 4. Verify destination bytes against the approved source, then record the successful snapshot and hashes. A partial failure must be reported, not treated as a successful sync.
-5. Report destination, backup location, and result. Never delete user backups as an incidental cleanup step.
+5. Mark the managed backup verified, apply its fixed retention policy, and report destination, backup location, pruned paths, and result. Retain the newest five verified backups per target and every backup used within 30 days. Pin a backup before using it for rollback. Never prune pinned, unverified, or unmanaged backups.
 
-Keep backups and synchronization state out of Git. The canonical source and maintenance tooling belong in Git. A pull alone does not deploy global rules. A skill alone does not watch files or trigger synchronization; an explicit script invocation or configured install/update hook is required.
+Keep backups and synchronization state out of Git. The canonical source and maintenance tooling belong in Git. The helper ignores historical backups without its metadata; audit those separately and use a dry run before any approved migration or deletion. A pull alone does not deploy global rules. A skill alone does not watch files or trigger synchronization; an explicit script invocation or configured install/update hook is required.
 
 Validate implemented tooling with disposable fixtures covering first deployment, unchanged files, source-only edits, global-only edits, changes on both sides, missing snapshots, backup failures, and concurrent edits. Do not use the user's live configuration as a test fixture.
