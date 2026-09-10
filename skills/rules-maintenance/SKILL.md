@@ -26,6 +26,7 @@ Before editing, inspect the affected files and preserve unrelated concurrent cha
 
 - Preserve explicit user preferences. Distinguish user instructions from assistant suggestions, quoted commands, and historical tool output.
 - Start with a demonstrated gap between actual behavior and the user's desired behavior, not reusability alone. Check whether missing guidance, non-adherence, conflicting instructions, or execution conditions caused it before adding rules.
+- When evaluating a correction or coaching, also ask what tool, check, or technique would have detected or prevented the failure faster than guidance; route that capability work to the owning skill or tooling instead of codifying discipline alone.
 - Put project goals and project-specific behavior in project rules, task procedures in narrowly triggered skills, and stable cross-task behavior in shared AGENTS.md. Shared additions require the highest bar: evidence of the gap, alignment with explicit preferences, a reason for global scope, and an explanation of why existing guidance is insufficient.
 - Write agent-authored Markdown entirely in English. This does not restrict conversational reply language.
 - Replace or merge equivalent rules rather than appending paraphrases. Review affected guidance for duplication, contradictions, supersession, invalid premises, portability, and loss of behavioral benefit. Propose pruning or narrower scope from observed cases; inactivity alone does not make a rule obsolete. Confirm semantic removals or scope changes before applying them.
