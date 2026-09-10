@@ -13,6 +13,7 @@ Use this as a tight validation loop for Pi extensions, not plugins for other pro
 - Finish when the requested behavior and applicable selected checks pass. Stop with a partial or blocked report when required evidence cannot be obtained within the budget; do not equate stopping with passing.
 - Reuse user-confirmed runtime evidence only when the tested behavior, relevant code, dependencies, configuration, and host version remain unchanged. Record its source and scope. Test-only or documentation changes do not by themselves require a runtime restart.
 - Investigate failures only far enough to establish relevance. Fix failures caused by this change; report unrelated, baseline, inferred-project, or stale diagnostics separately without expanding the task.
+- Diagnose before fixing. For a reported runtime failure, record the suspected root cause and the observation that would confirm or falsify it, and obtain that evidence before editing code. Label unverified premises, such as which code version a live process loaded, as inferences and resolve them first. When the deliverable is understanding why something fails, the evidence-backed diagnosis is the deliverable; a code fix additionally requires that diagnosis record and a regression first.
 - A fix–retest cycle is one attempted fix followed by a retest of the same acceptance blocker. After two unsuccessful cycles, stop and report evidence and a proposed next step; changing the root-cause hypothesis does not reset the count. Allow at most two environment-only retries per task, counted separately. Further attempts require user agreement.
 - Local restructuring necessary for the requested fix is in scope. Independent refactoring, additional features, optional broad scans, dependency cleanup, commits, and rebases require separate scope approval. A compacted history's future-work list is not fresh authorization.
 - Scope diagnostics to edited files. Run broader mandatory repository checks once initially; apply section 5 for reruns. Report their unrelated findings without adopting them as new work.
@@ -58,6 +59,8 @@ If reusable evidence satisfies the stop contract, cite it instead of launching a
 6. Capture the observed output and process state.
 
 The canary complements local tests; it does not replace them. A non-TTY subprocess may verify loading or non-interactive behavior, but cannot establish TUI interaction correctness. If the required terminal or host capability is unavailable, report that portion as blocked rather than substituting weaker evidence.
+
+**Live-pane trace.** When the required evidence is real-pane interaction that an isolated canary cannot produce (for example transcript selection), temporarily instrument the target extension to append bounded JSON lines (event, pid, timestamp, relevant payload) to a `/tmp` trace file, have the user reload extensions and perform the minimal representative actions, then read the trace file. Instrumentation must never break the extension and is removed before committing. Reloading or restarting the user's pane requires user authorization.
 
 Completion criterion: fresh-process or eligible reused evidence confirms the intended extension loaded and the relevant runtime action succeeded. Record warnings and errors with their relevance; mark an inapplicable canary skipped, and missing required runtime evidence blocked.
 
