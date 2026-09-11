@@ -51,7 +51,9 @@ Review the affected rules for duplicate meaning, contradictions, superseded word
 
 ## 3. Obtain approval, then execute
 
-Present the proposed edits, merges, removals, relevant checks, and publication destinations together. Wait for human confirmation before modifying stable rules. If the user has already approved that concrete scope, proceed without another confirmation.
+Complete the diagnosis and placement review before treating any request as implementation approval. Present the recommendation, exact changes, affected guidance, checks, and publication destinations before editing stable rules.
+
+If the user or another authorized controller directs implementation after receiving that review, implement the requested change even when the review recommends against it, unless higher-priority instructions or permission limits prevent the change.
 
 Apply only the approved changes, preserve unrelated edits, and use the ownership and publication procedures in SKILL.md. Automatically perform the approved checks, deployment, commit/push, and agreed remote synchronization. Pause the affected step for new conflicts, changed scope, failed checks, or unknown destinations. Approval is not blanket permission for unrelated publishing.
 

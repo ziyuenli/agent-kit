@@ -17,7 +17,7 @@ Before editing, inspect the affected files and preserve unrelated concurrent cha
 
 ## Choose the work
 
-- For user-requested session distillation, undesired agent behavior, or review and improvement of personal/project agent rules and skills, read [behavior-review.md](behavior-review.md). A review alone does not authorize edits; an already approved concrete change should proceed without another approval ritual.
+- For user-requested session distillation, undesired agent behavior, or review and improvement of personal or project rules and skills, read [behavior-review.md](behavior-review.md) and complete its diagnosis, placement, and approval steps before editing. A request to add a rule does not skip those steps.
 - For rule wording or placement, use the review criteria below.
 - For deployment differences, read [reconciliation.md](reconciliation.md).
 - For the rationale or original user requirements, read [provenance.md](provenance.md). Routine edits do not require rereading the conversation or article.
