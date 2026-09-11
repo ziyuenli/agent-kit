@@ -1,0 +1,4 @@
+interface:
+  display_name: "Writing Editor"
+  short_description: "Rewrite text while preserving meaning and voice"
+  default_prompt: "Use $writing-editor to revise this text while preserving its meaning, scope, and voice."
