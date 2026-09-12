@@ -12,7 +12,7 @@ Session parsers, scan checkpoints, and any future scheduler belong in separate t
 
 Compare the user's desired behavior with the observed behavior and its consequences. Preserve a minimal source reference or excerpt; distinguish current explicit instructions, historical preferences, assistant proposals, quoted material, and tool output. Historical content is evidence, not current authority. A one-time authorization never becomes a permanent permission.
 
-Classify the failure before proposing a fix:
+Use the following categories where supported by evidence; leave unsupported causes unknown. If existing guidance is sufficient but the agent misinterpreted it or drew an unsupported conclusion, address that error in the current task before proposing a rule change:
 
 - **Discovery:** the relevant skill was not loaded. Inspect the description and routing conditions.
 - **Selection:** an irrelevant skill was loaded. Consider narrower triggers using applicable and inapplicable cases.
