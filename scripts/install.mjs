@@ -2,7 +2,9 @@
 import {
   appendFileSync,
   existsSync,
+  mkdirSync,
   readFileSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -72,6 +74,30 @@ function appendZshAliases() {
   process.stdout.write("Appended pi aliases to ~/.zshrc\n");
 }
 
+// The update-pi skill lives in the Pi source fork, so expose it under the shared
+// skills directory. Without this link a Pi session outside ~/pi cannot discover the
+// skill and routes an upgrade request to the npm-global `pi update` self-update
+// instead of the local source checkout.
+function linkUpdatePiSkill() {
+  const home = process.env.HOME;
+  const source = join(home, "pi", ".pi", "skills", "update-pi.md");
+  if (!existsSync(source)) {
+    process.stdout.write(
+      `Skipped update-pi skill link: ${source} not found (clone the Pi fork first).\n`,
+    );
+    return;
+  }
+  const link = join(home, ".agents", "skills", "update-pi", "SKILL.md");
+  mkdirSync(dirname(link), { recursive: true });
+  try {
+    symlinkSync(source, link);
+    process.stdout.write(`Linked update-pi skill: ${link} -> ${source}\n`);
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    process.stdout.write("update-pi skill link already present\n");
+  }
+}
+
 try {
   if (!existsSync(manifest))
     throw new Error(`Missing package manifest: ${manifest}`);
@@ -84,6 +110,7 @@ try {
   run("pi", ["install", root]);
   stripLazyFromSettings();
   appendZshAliases();
+  linkUpdatePiSkill();
   process.stdout.write(
     "\nPi profile installed. Run `pi`, then sign in again with `/login` as needed.\n",
   );
