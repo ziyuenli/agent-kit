@@ -1,6 +1,6 @@
 # Pi Entry Point Reconciliation and Deployment
 
-This procedure applies only to the repository's `profile/AGENTS.md` and its deployed Pi entry point. Shared rules at `~/.agents/AGENTS.md` and the Codex entry point are directly maintained files outside this synchronization flow.
+This procedure applies only to the repository's `profile/AGENTS.md` and its deployed Pi entry point. Shared rules resolve from `~/.agents/AGENTS.md` to `AGENTS.md` at the repository root, and the Codex entry point is directly maintained at `${CODEX_HOME:-~/.codex}/AGENTS.md`; neither is part of this synchronization flow.
 
 The synchronization script implements the file comparison and deployment steps below. Semantic review remains the agent's responsibility. Its lock serializes script runs; input checks detect observed external edits but cannot prevent a non-cooperating editor from writing between the final check and atomic replacement. Avoid concurrent manual edits during deployment.
 

@@ -7,7 +7,7 @@ description: Review and improve personal or project agent rules and skills. Use 
 
 ## Scope and ownership
 
-Shared rules have one manually maintained source: `~/.agents/AGENTS.md`. Edit it directly; no repository copy or synchronization is required. The Codex entry point is maintained directly at `${CODEX_HOME:-~/.codex}/AGENTS.md`. Resolve the actual home directory and environment override rather than treating that notation as a literal path.
+Shared rules have one manually maintained source: `~/.agents/AGENTS.md`, a symlink to `AGENTS.md` at the repository root. Edit either path; there is no copy and no synchronization step. Because the resolved file is Git-tracked, use Git for rollback instead of `manage-rule-backups.mjs`, and confirm the link still resolves before editing. The Codex entry point is maintained directly at `${CODEX_HOME:-~/.codex}/AGENTS.md`. Resolve the actual home directory and environment override rather than treating that notation as a literal path.
 
 Only the Pi entry point is maintained at `profile/AGENTS.md` in this repository and deployed to `${PI_CODING_AGENT_DIR:-~/.pi/agent}/AGENTS.md`. Keep it a short shared-file read instruction plus necessary Pi-specific guidance. The synchronization script owns only this Pi entry point, not shared rules or Codex configuration. Pi extensions, skills, and their tooling remain maintained in this repository.
 
