@@ -26,7 +26,7 @@ const LAZY_SOURCES = [
   "npm:pi-mcp-adapter@2.31.0",
 ];
 
-const ZSH_ALIASES = `\n# pi cold-load aliases (pi-extensions)\npiweb() { pi -e npm:pi-web-access@0.27.0 "$@" }\npilens() { pi -e npm:pi-lens@4.1.3 "$@" }\npimcp() { pi -e npm:pi-mcp-adapter@2.31.0 "$@" }\n`;
+const ZSH_ALIASES = `\n# pi cold-load aliases (agent-kit)\npiweb() { pi -e npm:pi-web-access@0.27.0 "$@" }\npilens() { pi -e npm:pi-lens@4.1.3 "$@" }\npimcp() { pi -e npm:pi-mcp-adapter@2.31.0 "$@" }\n`;
 
 function run(command, args) {
   const result = spawnSync(command, args, { stdio: "inherit" });

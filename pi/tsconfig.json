@@ -1,5 +1,5 @@
 {
-	"extends": "../pi/tsconfig.json",
+	"extends": "../../pi/tsconfig.json",
 	"compilerOptions": {
 		"target": "ES2022",
 		"module": "ESNext",

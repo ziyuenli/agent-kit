@@ -14,7 +14,14 @@ import { homedir } from "node:os";
 import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_ROOT = join(homedir(), ".agents/rule-backups");
+// Fail fast instead of crashing mid-run: this tool groups records with Map.groupBy,
+// which requires Node >= 21. Without this guard the failure surfaces after the target
+// file has already been written, leaving backup verification and the sync snapshot undone.
+if (typeof Map.groupBy !== "function")
+  throw new Error(
+    `Pi rule tooling needs Node >= 21 (Map.groupBy is unavailable; running ${process.version}). Re-run with the Node 24 runtime Pi uses, e.g. 'nvm use 24' or PATH=/path/to/node24/bin:$PATH.`,
+  );
+const DEFAULT_ROOT = join(homedir(), ".agents-archive/rule-backups");
 const KEEP_COUNT = 5;
 const KEEP_DAYS = 30;
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
@@ -82,12 +89,16 @@ export function createRuleBackup({
   );
   mkdirSync(targetDir, { recursive: true, mode: 0o700 });
   const usedAt = now.toISOString();
-  for (const name of readdirSync(targetDir).filter((item) => item.endsWith(".json"))) {
+  for (const name of readdirSync(targetDir).filter((item) =>
+    item.endsWith(".json"),
+  )) {
     const recordPath = join(targetDir, name);
     const record = readMetadata(recordPath);
     if (record.target !== target || record.sha256 !== contentHash) continue;
     if (sha256(readRegular(record.backupPath)) !== contentHash)
-      throw new Error(`Managed backup failed its recorded hash: ${record.backupPath}`);
+      throw new Error(
+        `Managed backup failed its recorded hash: ${record.backupPath}`,
+      );
     record.lastUsedAt = usedAt;
     record.lastReason = slug(reason);
     delete record.recordPath;
@@ -161,10 +172,13 @@ export function pruneRuleBackups({
           Date.parse(b.lastUsedAt || b.createdAt) -
           Date.parse(a.lastUsedAt || a.createdAt),
       );
-    const recent = new Set(eligible.slice(0, KEEP_COUNT).map((record) => record.recordPath));
+    const recent = new Set(
+      eligible.slice(0, KEEP_COUNT).map((record) => record.recordPath),
+    );
     for (const record of eligible) {
       const usedAt = Date.parse(record.lastUsedAt || record.createdAt);
-      if (!recent.has(record.recordPath) && usedAt < cutoff) candidates.push(record);
+      if (!recent.has(record.recordPath) && usedAt < cutoff)
+        candidates.push(record);
     }
   }
 
@@ -189,10 +203,15 @@ export function pruneRuleBackups({
 }
 
 function option(args, name) {
-  return args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+  return args
+    .find((arg) => arg.startsWith(`--${name}=`))
+    ?.slice(name.length + 3);
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   try {
     const [command, ...args] = process.argv.slice(2);
     let result;

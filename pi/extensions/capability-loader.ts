@@ -4,7 +4,7 @@
  * 思路：
  *   - 重扩展（pi-web-access / pi-lens / @plannotator / pi-mcp-adapter）默认不放进
  *     settings.json 的 packages，冷启动保持快（它们在 install 时已装好，只是不自动加载）。
- *   - 本扩展很轻（只注册 2 个命令 + 2 个工具），始终随本地包 `../../pi-extensions` 加载。
+ *   - 本扩展很轻（只注册 2 个命令 + 2 个工具），始终随本地包 `../../agent-kit/pi` 加载。
  *   - 当 agent/你 需要某个能力时，调用工具 `enable_capability`（或命令
  *     `/capability-enable <name>`）→ 把对应 package 写进 settings.json → ctx.reload()
  *     加载它 → 之后就能用了。

@@ -3,13 +3,14 @@ import {
   mkdtempSync,
   mkdirSync,
   readFileSync,
+  symlinkSync,
   writeFileSync,
   rmSync,
   existsSync,
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { syncRules } from "./sync-agent-rules.mjs";
+import { sharedRulesLinkStatus, syncRules } from "./sync-agent-rules.mjs";
 import {
   createRuleBackup,
   pruneRuleBackups,
@@ -111,6 +112,29 @@ try {
   assert.equal(existsSync(records[1].backupPath), false);
   assert.equal(existsSync(records[0].backupPath), true);
   assert.equal(existsSync(prepared.backupPath), true);
+  const linkDir = join(root, "link");
+  mkdirSync(linkDir);
+  const linkRepo = join(linkDir, "repo");
+  mkdirSync(linkRepo);
+  const linkTarget = join(linkRepo, "AGENTS.md");
+  writeFileSync(linkTarget, "R\n");
+  const sharedPath = join(linkDir, "shared.md");
+  const linkState = () =>
+    sharedRulesLinkStatus({ sharedPath, repoRoot: linkRepo }).state;
+  assert.equal(linkState(), "missing");
+  writeFileSync(sharedPath, "R\n");
+  assert.equal(linkState(), "regular-file");
+  rmSync(sharedPath);
+  symlinkSync(linkTarget, sharedPath);
+  assert.equal(linkState(), "ok");
+  rmSync(sharedPath);
+  writeFileSync(join(linkDir, "other.md"), "R\n");
+  symlinkSync(join(linkDir, "other.md"), sharedPath);
+  assert.equal(linkState(), "wrong-target");
+  rmSync(sharedPath);
+  symlinkSync(join(linkDir, "absent.md"), sharedPath);
+  assert.equal(linkState(), "broken-link");
+
   process.stdout.write("Rules synchronization checks passed\n");
 } finally {
   rmSync(root, { recursive: true, force: true });

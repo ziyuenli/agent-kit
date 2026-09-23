@@ -11,7 +11,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("hello", {
     description: "回显一条问候",
     handler: async (_args, ctx: ExtensionCommandContext) => {
-      ctx.ui.notify("Hello from ~/pi-extensions", "info");
+      ctx.ui.notify("Hello from ~/agent-kit/pi", "info");
     },
   });
 }

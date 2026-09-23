@@ -4,6 +4,7 @@ import {
   lstatSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
   renameSync,
   unlinkSync,
@@ -36,6 +37,41 @@ function atomic(path, text, mode = 0o600) {
   } finally {
     if (existsSync(temp)) unlinkSync(temp);
   }
+}
+// Guard for the shared rules path: it must stay a symlink to the repository file.
+// A regular file here means something rewrote it non-atomically (write + rename
+// replaces the link), which silently forks the shared rules.
+export function sharedRulesLinkStatus({
+  sharedPath = join(homedir(), ".agents/AGENTS.md"),
+  repoRoot = dirname(root),
+} = {}) {
+  const path = resolve(sharedPath.replace(/^~(?=\/|$)/, homedir()));
+  const target = join(repoRoot, "AGENTS.md");
+  let entry;
+  try {
+    entry = lstatSync(path);
+  } catch {
+    return { path, target, state: "missing" };
+  }
+  if (!entry.isSymbolicLink()) return { path, target, state: "regular-file" };
+  let resolvesTo;
+  try {
+    resolvesTo = realpathSync(path);
+  } catch {
+    return { path, target, state: "broken-link" };
+  }
+  let expected;
+  try {
+    expected = realpathSync(target);
+  } catch {
+    return { path, target, state: "wrong-target", resolvesTo };
+  }
+  return {
+    path,
+    target,
+    state: resolvesTo === expected ? "ok" : "wrong-target",
+    resolvesTo,
+  };
 }
 export function syncRules({
   source = join(root, "profile/AGENTS.md"),
@@ -149,16 +185,18 @@ if (
       throw new Error(
         "Usage: sync-agent-rules.mjs [--check|--apply] [--approve=review-token]",
       );
-    console.log(
-      JSON.stringify(
-        syncRules({
-          apply: args.includes("--apply"),
-          approve: args.find((a) => a.startsWith("--approve="))?.slice(10),
-        }),
-        null,
-        2,
-      ),
-    );
+    const result = syncRules({
+      apply: args.includes("--apply"),
+      approve: args.find((a) => a.startsWith("--approve="))?.slice(10),
+    });
+    result.sharedRulesLink = sharedRulesLinkStatus();
+    if (
+      ["regular-file", "wrong-target", "broken-link"].includes(
+        result.sharedRulesLink.state,
+      )
+    )
+      process.exitCode = 1;
+    console.log(JSON.stringify(result, null, 2));
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

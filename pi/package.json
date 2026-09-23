@@ -1,5 +1,5 @@
 {
-  "name": "@ziyuenli/pi-extensions",
+  "name": "@ziyuenli/agent-kit",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,11 +11,13 @@
     "extensions": [
       "./extensions/inline-comments/index.ts",
       "./extensions/safety/index.ts",
-      "./extensions/capability-loader.ts"
+      "./extensions/capability-loader.ts",
+      "./extensions/session-summary/index.ts"
     ]
   },
   "scripts": {
-    "test:safety": "node --experimental-strip-types scripts/test-safety.mjs"
+    "test:safety": "node --experimental-strip-types scripts/test-safety.mjs",
+    "test:session-summary": "node --experimental-strip-types scripts/test-session-summary.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
