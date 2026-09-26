@@ -107,11 +107,11 @@ by `install.mjs`).
 
 ## Agent rules and maintenance skills
 
-Shared rules live in `AGENTS.md` at the repository root and are exposed to every harness as `~/.agents/AGENTS.md`, a symlink to that file. Each agent's native entry point must explicitly read that path. The Pi entry point is maintained in `profile/AGENTS.md`; deploy it with `node scripts/sync-agent-rules.mjs --check`, then `--apply` after reviewing any differences. Git pull alone does not deploy it.
+Shared rules live in `AGENTS.md` at the repository root and are exposed to every harness as `~/.agents/AGENTS.md`, a symlink to that file. Each agent's native entry point must explicitly read that path. The Pi entry point is maintained in `pi/profile/AGENTS.md` relative to the repository root; from that root, deploy it with `node pi/scripts/sync-agent-rules.mjs --check`, then `--apply` after reviewing any differences. Git pull alone does not deploy it.
 
-The repository maintains `skills/rules-maintenance/` and `skills/pi-ext-check/`. Expose them as same-named symlinks under `~/.agents/skills/`, targeting the actual checkout. Inspect and reconcile existing destinations before creating links; do not overwrite independent skill copies. Pi discovers this shared directory; other agents must support it or follow the explicit shared-file pointers. Verify discovery in the target agent after installation or renaming.
+The repository root maintains `skills/rules-maintenance/`, `skills/pi-ext-check/`, and `skills/delegated-execution/`. Expose them as same-named symlinks under `~/.agents/skills/`, targeting the actual checkout. Inspect and reconcile existing destinations before creating links; do not overwrite independent skill copies. Pi discovers this shared directory; other agents must support it or follow the explicit shared-file pointers. Verify discovery in the target agent after installation or renaming.
 
-`rules-maintenance` handles user-triggered behavior-gap reviews, supervised session distillation, pruning, and approved publication. `pi-ext-check` supplies bounded Pi extension checks. Neither schedules background scans. Approved publication includes commit/push and agreed remote deployment, but pushing this repository does not publish the external shared file or update another machine's active configuration.
+`rules-maintenance` handles user-triggered behavior-gap reviews, supervised session distillation, pruning, and approved publication. `pi-ext-check` supplies bounded Pi extension checks. `delegated-execution` supplies CLI role, evidence, and handoff guidance. These skills do not schedule background scans. Approved publication includes commit/push and agreed remote deployment. Pushing this repository publishes the tracked shared source and Pi entry source, but does not create another machine's shared-file link or deploy its native entry points.
 
 ## Updating the profile
 

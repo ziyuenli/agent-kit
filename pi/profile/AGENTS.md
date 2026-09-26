@@ -6,4 +6,4 @@ The referenced file remains shared guidance, regardless of when it is read; it d
 
 ## Maintenance
 
-Before changing this Pi entry point, read `~/.agents/skills/rules-maintenance/SKILL.md` for source ownership and deployment checks. Maintain `profile/AGENTS.md` in the Pi extensions repository and deploy it with the existing synchronization script. Shared rules are maintained separately at `~/.agents/AGENTS.md`; do not copy them into this file.
+Before changing this Pi entry point, read `~/.agents/skills/rules-maintenance/SKILL.md` for source ownership and deployment checks. Maintain `pi/profile/AGENTS.md` in the `agent-kit` repository and deploy it with `node pi/scripts/sync-agent-rules.mjs` from that repository root. Shared rules are maintained separately at `~/.agents/AGENTS.md`; do not copy them into this file.

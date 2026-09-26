@@ -1,6 +1,6 @@
 # Pi Entry Point Reconciliation and Deployment
 
-This procedure applies only to the repository's `profile/AGENTS.md` and its deployed Pi entry point. Shared rules resolve from `~/.agents/AGENTS.md` to `AGENTS.md` at the repository root, and the Codex entry point is directly maintained at `${CODEX_HOME:-~/.codex}/AGENTS.md`; neither is part of this synchronization flow.
+This procedure applies only to the repository's `pi/profile/AGENTS.md` and its deployed Pi entry point. Shared rules resolve from `~/.agents/AGENTS.md` to `AGENTS.md` at the repository root, and the Codex entry point is directly maintained at `${CODEX_HOME:-~/.codex}/AGENTS.md`; neither is part of this synchronization flow.
 
 The synchronization script implements the file comparison and deployment steps below. Semantic review remains the agent's responsibility. Its lock serializes script runs; input checks detect observed external edits but cannot prevent a non-cooperating editor from writing between the final check and atomic replacement. Avoid concurrent manual edits during deployment.
 
@@ -15,7 +15,7 @@ Compare the canonical source (S), global destination (D), and last successfully 
 For an authorized deployment, the script must:
 
 1. Serialize synchronization and recheck that reviewed inputs have not changed before writing. Stop on concurrent edits.
-2. Back up the existing destination with `scripts/manage-rule-backups.mjs`. Its metadata records the target, reason, timestamps, pre-change hash, verification state, and pin state. If backup fails, stop.
+2. Back up the existing destination with `pi/scripts/manage-rule-backups.mjs` (relative to the repository root). Its metadata records the target, reason, timestamps, pre-change hash, verification state, and pin state. If backup fails, stop.
 3. Write through a temporary file in the destination directory and replace atomically. Preserve appropriate access permissions; never truncate the live file in place.
 4. Verify destination bytes against the approved source, then record the successful snapshot and hashes. A partial failure must be reported, not treated as a successful sync.
 5. Mark the managed backup verified, apply its fixed retention policy, and report destination, backup location, pruned paths, and result. Retain the newest five verified backups per target and every backup used within 30 days. Pin a backup before using it for rollback. Never prune pinned, unverified, or unmanaged backups.
