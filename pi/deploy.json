@@ -1,0 +1,13 @@
+{
+  "harness": "pi",
+  "detect": ["~/.pi/agent"],
+  "rules": {
+    "mode": "dispatch",
+    "command": ["node", "pi/scripts/sync-agent-rules.mjs"]
+  },
+  "skillRoots": [
+    { "path": "~/.agents/skills", "action": "ensure" },
+    { "path": "~/.pi/agent/skills", "action": "report" }
+  ],
+  "notes": "Pi's entry point is copied rather than linked (backups and state under ~/.pi/agent/rules-sync), so deployment stays with pi/scripts/sync-agent-rules.mjs. Pi scans ~/.agents/skills itself, so the links in ~/.pi/agent/skills only duplicate the skills already visible there; that root is reported, never filled."
+}

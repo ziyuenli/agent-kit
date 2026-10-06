@@ -1,0 +1,11 @@
+{
+  "harness": "dsh",
+  "detect": ["$DSH_HOME", "~/Library/Application Support/dsh-desktop/harness", "~/.dsh"],
+  "rules": {
+    "mode": "symlink",
+    "source": "AGENTS.md",
+    "target": "{home}/AGENTS.md"
+  },
+  "skillRoots": [{ "path": "~/.agents/skills", "action": "ensure" }],
+  "notes": "DSH injects the shared rules as user-global instructions; it has no entry-point file. The home is resolved as explicit config, then $DSH_HOME, then ~/.dsh, so the link must live in the same home the running app uses."
+}

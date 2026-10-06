@@ -1,0 +1,11 @@
+{
+  "harness": "claude",
+  "detect": ["~/.claude"],
+  "rules": {
+    "mode": "symlink",
+    "source": "claude/CLAUDE.md",
+    "target": "{home}/CLAUDE.md"
+  },
+  "skillRoots": [{ "path": "~/.agents/skills", "action": "ensure" }],
+  "notes": "The entry point is a link and asks the agent to read ~/.agents/AGENTS.md. Claude's harness-specific skill root is not verified on this machine (~/.claude/skills does not exist); the shared hub is the path this repository deploys for every harness."
+}
