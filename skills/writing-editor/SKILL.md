@@ -1,11 +1,17 @@
 ---
 name: writing-editor
-description: Draft, rewrite, rephrase, shorten, or refine user-facing prose while preserving the author's intended meaning and voice. Use for wording help, email editing, and academic-language editing; do not use for substantive peer review or research evaluation unless the user separately asks for wording changes.
+description: Draft or revise human-facing writing deliverables such as emails, manuscripts, presentation text and explicitly requested wording edits. Excludes agent-first documentation, routine assistant replies and substantive research evaluation.
 ---
 
 # Writing Editor
 
 Edit the writing, not the underlying claim. Follow the user's current purpose, audience, scope, and requested tone.
+
+## Invocation scope
+
+Apply this skill when the requested deliverable is writing for human readers or listeners. Classify by the document's purpose, not its file format or whether the user can see it.
+
+Agent-first instructions, task contracts, runbooks and handoff records use `writing-for-agents` where applicable. Routine answers, technical explanations and progress reports follow shared communication guidance without loading this skill. For mixed tasks, apply this skill only to the human-facing writing deliverable. Substantive peer review and research evaluation remain outside scope unless wording revision is separately requested.
 
 ## Route by writing type
 

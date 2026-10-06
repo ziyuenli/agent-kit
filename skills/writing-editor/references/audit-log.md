@@ -119,6 +119,19 @@ This file records maintenance evidence and is not an active writing guide.
 - User decision and date: Approved 2026-09-11.
 - Current status: active
 
+## SCOPE-001
+
+- Category: skill selection
+- Observed behavior gap: The PHU result-management task loaded writing-editor while writing Agent execution guidance, despite the existing human-facing scope.
+- Exact description: "Draft or revise human-facing writing deliverables such as emails, manuscripts, presentation text and explicitly requested wording edits. Excludes agent-first documentation, routine assistant replies and substantive research evaluation."
+- Intended scope: Requested writing for human readers or listeners; preserve existing email and academic wording rules.
+- Boundary: Agent-first instructions, task contracts, runbooks and handoff records use writing-for-agents where applicable. Routine replies use shared communication guidance. Mixed tasks apply writing-editor only to the human-facing deliverable.
+- Duplication and conflict check: Replace the existing description and shared routing entry; add the invocation boundary to the skill. No new skill or duplicate tone rule.
+- Positive behavior cases: Draft an email; revise a manuscript paragraph; prepare presentation text.
+- Negative behavior cases: Update an Agent task contract, result-management runbook or AGENTS.md; report experiment progress. A Markdown presentation script remains a positive case because purpose, not format, controls selection.
+- User decision and date: Approved 2026-09-26 in the side conversation: narrow the skill and rephrase the main task documents using agent-first language.
+- Current status: active. Static scope/routing checks do not establish fresh-session selection behavior.
+
 ## Required record for each proposed rule
 
 - Rule ID and category
